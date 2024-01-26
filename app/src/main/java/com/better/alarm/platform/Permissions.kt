@@ -18,14 +18,16 @@ import com.better.alarm.data.ringtoneManagerUri
 import com.better.alarm.logger.Logger
 import com.better.alarm.services.PlayerWrapper
 import com.better.alarm.ui.ringtonepicker.userFriendlyTitle
+import kotlin.coroutines.coroutineContext
+import kotlinx.coroutines.ensureActive
 
 /** Checks if all ringtones can be played, and requests permissions if it is not the case */
-fun checkPermissions(activity: Activity, tones: List<Alarmtone>) {
+suspend fun checkPermissions(activity: Activity, tones: List<Alarmtone>) {
   checkSetAlarmPermissions(activity)
   checkMediaPermissions(activity, tones)
 }
 
-private fun checkMediaPermissions(activity: Activity, tones: List<Alarmtone>) {
+private suspend fun checkMediaPermissions(activity: Activity, tones: List<Alarmtone>) {
   if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
   val mediaPermission =
       when {
@@ -55,6 +57,10 @@ private fun checkMediaPermissions(activity: Activity, tones: List<Alarmtone>) {
             .map { ringtone -> ringtone.userFriendlyTitle(activity) }
 
     if (unplayable.isNotEmpty()) {
+      logger.warning {
+        "Some ringtones are not playable: $unplayable, showing dialog to request permissions"
+      }
+      coroutineContext.ensureActive()
       try {
         AlertDialog.Builder(activity)
             .setTitle(activity.getString(R.string.alert))

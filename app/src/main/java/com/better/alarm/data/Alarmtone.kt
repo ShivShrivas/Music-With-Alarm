@@ -18,13 +18,13 @@ fun Alarmtone.ringtoneManagerUri(): String? {
 
 @Serializable
 sealed class Alarmtone {
-  @SerialName("Silent") @Serializable object Silent : Alarmtone()
+  @SerialName("Silent") @Serializable data object Silent : Alarmtone()
 
   /** User has selected the same alarm as in the application settings. */
-  @SerialName("Default") @Serializable object Default : Alarmtone()
+  @SerialName("Default") @Serializable data object Default : Alarmtone()
 
   /** The ringtone is a SystemDefault ringtone. */
-  @SerialName("SystemDefault") @Serializable object SystemDefault : Alarmtone()
+  @SerialName("SystemDefault") @Serializable data object SystemDefault : Alarmtone()
 
   @SerialName("Sound") @Serializable data class Sound(val uriString: String) : Alarmtone()
 

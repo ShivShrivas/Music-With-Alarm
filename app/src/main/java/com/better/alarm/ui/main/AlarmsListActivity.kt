@@ -55,6 +55,8 @@ import com.google.android.material.snackbar.Snackbar
 import io.reactivex.disposables.Disposables
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.rx2.awaitFirst
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.protobuf.ProtoBuf
 import org.koin.android.ext.android.inject
@@ -113,11 +115,10 @@ class AlarmsListActivity() : AppCompatActivity() {
 
     setContentView(R.layout.list_activity)
 
-    store
-        .alarms()
-        .take(1)
-        .subscribe { alarms -> checkPermissions(this, alarms.map { it.alarmtone }) }
-        .apply {}
+    val context = this
+    lifecycleScope.launch {
+      checkPermissions(context, store.alarms().awaitFirst().map { it.alarmtone })
+    }
 
     backPresses.onBackPressed(lifecycle) { finish() }
   }

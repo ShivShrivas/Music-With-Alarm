@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Vibrator
 import android.provider.Settings
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.CheckBoxPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
@@ -24,6 +25,11 @@ import com.better.alarm.ui.ringtonepicker.getPickedRingtone
 import com.better.alarm.ui.ringtonepicker.showRingtonePicker
 import com.better.alarm.ui.ringtonepicker.userFriendlyTitle
 import io.reactivex.disposables.CompositeDisposable
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.rx2.asFlow
 import org.koin.android.ext.android.inject
 
 /** Created by Yuriy on 24.07.2017. */
@@ -77,10 +83,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
     check(alarmtone !is Alarmtone.Default) { "Default alarmtone is not allowed here" }
     logger.debug { "Picked default alarm tone: $alarmtone" }
     prefs.defaultRingtone.value = alarmtone.asString()
-    checkPermissions(
-        requireActivity(),
-        listOf(alarmtone),
-    )
+    lifecycleScope.launch {
+      checkPermissions(
+          requireActivity(),
+          listOf(alarmtone),
+      )
+    }
   }
 
   override fun onPreferenceTreeClick(preference: Preference): Boolean {
@@ -111,15 +119,17 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val current = Alarmtone.fromString(prefs.defaultRingtone.value)
         showRingtonePicker(current, 43)
       }
+
       prefs.defaultRingtone
           .observe()
+          .asFlow()
           .map { Alarmtone.fromString(it) }
-          .subscribe { alarmtone ->
+          .onEach { alarmtone ->
             val summary = alarmtone.userFriendlyTitle(requireContext())
             logger.debug { "Setting summary to $summary" }
             ringtoneTitle = summary
           }
-          .also { disposables.add(it) }
+          .launchIn(lifecycleScope)
     }
 
     bindListPreference(Prefs.KEY_ALARM_SNOOZE, prefs.snoozeDuration) { duration ->

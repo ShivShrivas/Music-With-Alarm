@@ -56,14 +56,13 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.disposables.Disposables
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -305,19 +304,18 @@ class AlarmDetailsFragment : Fragment() {
               value to defaultRingtone
             }
         .map { (alarmtone, default) ->
-          withContext(Dispatchers.IO) {
-            when {
-              // Default (title)
-              // We need this case otherwise we will have "App default (Default (title))"
-              alarmtone is Alarmtone.Default && default is Alarmtone.SystemDefault ->
-                  default.userFriendlyTitle(requireActivity())
-              // App default (title)
-              alarmtone is Alarmtone.Default ->
-                  getString(
-                      R.string.app_default_ringtone, default.userFriendlyTitle(requireActivity()))
-              // title
-              else -> alarmtone.userFriendlyTitle(requireActivity())
-            }
+          val hostActivity = requireActivity()
+          when {
+            // Default (title)
+            // We need this case otherwise we will have "App default (Default (title))"
+            alarmtone is Alarmtone.Default && default is Alarmtone.SystemDefault ->
+                default.userFriendlyTitle(hostActivity)
+            // App default (title)
+            alarmtone is Alarmtone.Default ->
+                hostActivity.getString(
+                    R.string.app_default_ringtone, default.userFriendlyTitle(hostActivity))
+            // title
+            else -> alarmtone.userFriendlyTitle(hostActivity)
           }
         }
         .onEach { ringtoneSummary.text = it }
@@ -371,7 +369,7 @@ class AlarmDetailsFragment : Fragment() {
   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
     if (data != null && requestCode == ringtonePickerRequestCode) {
       val alarmtone = data.getPickedRingtone()
-      checkPermissions(requireActivity(), listOf(alarmtone))
+      lifecycleScope.launch { checkPermissions(requireActivity(), listOf(alarmtone)) }
       logger.debug { "Picked alarm tone: $alarmtone" }
       modify("Ringtone picker") { prev -> prev.copy(alarmtone = alarmtone, isEnabled = true) }
     }

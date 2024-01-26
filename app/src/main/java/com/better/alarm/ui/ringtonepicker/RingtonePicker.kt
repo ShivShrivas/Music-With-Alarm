@@ -5,12 +5,16 @@ import android.content.Intent
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
+import android.os.Looper
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.better.alarm.R
 import com.better.alarm.data.Alarmtone
 import com.better.alarm.data.ringtoneManagerUri
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Shows the ringtone picker.
@@ -88,26 +92,27 @@ fun Intent.getPickedRingtone(): Alarmtone {
   return alarmtone
 }
 
-fun Alarmtone.userFriendlyTitle(context: Context): CharSequence {
-  return runCatching {
-        when (this) {
-          is Alarmtone.Silent -> context.getText(R.string.silent_alarm_summary)
-          else ->
-              RingtoneManager.getRingtone(context, this.ringtoneManagerUri()?.toUri())
-                  .title(context)
-        }
-      }
-      .getOrDefault("")
+suspend fun Alarmtone.userFriendlyTitle(context: Context): CharSequence {
+  checkNotNull(Looper.myLooper()) { "userFriendlyTitle should be called from the main thread" }
+  return when (this) {
+    is Alarmtone.Silent -> context.getText(R.string.silent_alarm_summary)
+    else ->
+        ringtoneManagerUri() //
+            ?.toUri()
+            ?.let { uri -> context.getRingtoneTitleOrNull(uri) }
+            ?: context.getText(R.string.silent_alarm_summary)
+  }
 }
 
-private fun Ringtone.title(context: Context): CharSequence {
-  // this can fail, see
-  // https://github.com/yuriykulikov/AlarmClock/issues/403
-  return try {
-    getTitle(context) ?: context.getText(R.string.silent_alarm_summary)
-  } catch (e: Exception) {
-    context.getText(R.string.silent_alarm_summary)
-  } catch (e: NullPointerException) {
-    null
-  } ?: ""
+/**
+ * Call to [Ringtone.getTitle] can fail, see
+ * [AlarmClock#403](https://github.com/yuriykulikov/AlarmClock/issues/403)
+ */
+private suspend fun Context.getRingtoneTitleOrNull(uri: Uri): CharSequence? {
+  val context = this
+  return withContext(Dispatchers.IO) {
+    runCatching { RingtoneManager.getRingtone(context, uri).getTitle(context) }
+        .onFailure { if (it is CancellationException) throw it }
+        .getOrNull()
+  }
 }

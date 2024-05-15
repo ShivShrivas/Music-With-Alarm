@@ -19,5 +19,9 @@ class AlarmDetailsViewModel(private val uiStore: UiStore) : ViewModel() {
     uiStore.editing().value?.let { prev -> uiStore.edit(function(prev.value), prev.isNew) }
   }
 
-  var newAlarmPopupSeen: Boolean = false
+  var newAlarmPopupSeen: Boolean
+    get() = uiStore.newAlarmPopupSeen
+    set(value) {
+      uiStore.newAlarmPopupSeen = value
+    }
 }

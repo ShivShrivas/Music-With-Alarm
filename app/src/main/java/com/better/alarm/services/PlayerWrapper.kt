@@ -36,7 +36,7 @@ class PlayerWrapper(
   override fun startAlarm() {
     player?.runCatching {
       setAudioUsageL()
-      isLooping = true
+      isLooping = false
       prepare()
       when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> requestAudioFocusO()

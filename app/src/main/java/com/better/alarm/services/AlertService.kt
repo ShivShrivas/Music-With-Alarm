@@ -131,27 +131,28 @@ class AlertService(
   }
 
   fun onStartCommand(event: Event): Boolean {
-    log.debug { "onStartCommand $event" }
+      log.debug { "onStartCommand $event" }
 
-    return if (stateValid(event)) {
+//    return if (stateValid(event)) {
       when (event) {
-        is Event.AlarmEvent -> soundAlarm(event.id, Type.NORMAL)
-        is Event.PrealarmEvent -> soundAlarm(event.id, Type.PREALARM)
-        is Event.MuteEvent -> wantedVolume.onNext(TargetVolume.MUTED)
-        is Event.DemuteEvent -> wantedVolume.onNext(TargetVolume.FADED_IN_FAST)
-        is Event.DismissEvent -> remove(event.id)
-        is Event.SnoozedEvent -> remove(event.id)
-        is Event.Autosilenced -> remove(event.id)
-        else -> {
-          check(!BuildConfig.DEBUG) { "Unexpected event: $event" }
-        }
+          is Event.AlarmEvent -> soundAlarm(event.id, Type.NORMAL)
+          is Event.PrealarmEvent -> soundAlarm(event.id, Type.PREALARM)
+          is Event.MuteEvent -> wantedVolume.onNext(TargetVolume.MUTED)
+          is Event.DemuteEvent -> wantedVolume.onNext(TargetVolume.FADED_IN_FAST)
+          is Event.DismissEvent -> remove(event.id)
+          is Event.SnoozedEvent -> remove(event.id)
+          is Event.Autosilenced -> remove(event.id)
+          else -> {
+              check(!BuildConfig.DEBUG) { "Unexpected event: $event" }
+          }
       }
 
       activeAlarms.requireValue().isNotEmpty()
-    } else {
-      enclosing.handleUnwantedEvent()
-      false
-    }
+//    } else {
+//      enclosing.handleUnwantedEvent()
+//      false
+//    }
+  return true
   }
 
   private fun stateValid(event: Event): Boolean {

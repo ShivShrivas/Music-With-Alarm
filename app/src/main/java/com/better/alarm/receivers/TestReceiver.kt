@@ -39,3 +39,6 @@ class TestReceiver : BroadcastReceiver() {
         com.better.alarm.BuildConfig.APPLICATION_ID + ".ACTION_DROP_AND_MIGRATE_DATABASE"
   }
 }
+
+
+

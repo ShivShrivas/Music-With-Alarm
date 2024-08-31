@@ -51,7 +51,7 @@ class BackgroundNotifications(
       when (event) {
         is Event.AlarmEvent -> nm.cancel(event.id + SNOOZE_NOTIFICATION)
         is Event.PrealarmEvent -> nm.cancel(event.id + SNOOZE_NOTIFICATION)
-        is Event.DismissEvent -> nm.cancel(event.id + SNOOZE_NOTIFICATION)
+        is Event.DismissEvent -> nm.cancel(DISMISS_NOTIFICATION)
         is Event.CancelSnoozedEvent -> nm.cancel(event.id + SNOOZE_NOTIFICATION)
         is Event.SnoozedEvent -> onSnoozed(event.id, event.calendar)
         is Event.Autosilenced -> onSoundExpired(event.id)
@@ -77,7 +77,7 @@ class BackgroundNotifications(
 
     val pendingDismiss =
         PresentationToModelIntents.createPendingIntent(
-            mContext, PresentationToModelIntents.ACTION_REQUEST_DISMISS, id)
+            mContext, PresentationToModelIntents.ACTION_REQUEST_DISMISS, 5000)
 
     val label = alarmsManager.getAlarm(id)?.labelOrDefault ?: ""
 
@@ -177,6 +177,9 @@ class BackgroundNotifications(
     private const val DM24 = "E kk:mm"
     private const val SNOOZE_NOTIFICATION = 1000
     private const val ONLY_MANUAL_DISMISS_OFFSET = 2000
-    private const val SKIP_NOTIFICATION = 3000
+    private const val DISMISS_NOTIFICATION = 5000
+      private const val SKIP_NOTIFICATION = 3000
+
+
   }
 }

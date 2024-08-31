@@ -9,8 +9,13 @@ import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
+import com.better.alarm.bootstrap.globalInject
+import com.better.alarm.domain.AlarmCore
+import com.better.alarm.domain.Alarms
+import com.better.alarm.domain.AlarmsScheduler
 import com.better.alarm.logger.Logger
 
 class PlayerWrapper(
@@ -31,6 +36,16 @@ class PlayerWrapper(
           player = null
           true
         }
+
+          setOnCompletionListener {
+              val alarms: Alarms by globalInject()
+              for (i in 0..40) {
+                  alarms.getAlarm(i)?.dismiss()
+
+              }
+
+
+          }
       }
 
   override fun startAlarm() {

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2012 Yuriy Kulikov yuriy.kulikov.87@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,8 @@ class AlarmsReceiver : BroadcastReceiver() {
   private val log: Logger by globalLogger("AlarmsReceiver")
 
   override fun onReceive(context: Context, intent: Intent) {
+      val id = intent.getIntExtra(AlarmsScheduler.EXTRA_ID, -1)
+      log.debug { "Fired  ACTION_INEXACT_FIRED $id" }
     when (intent.action) {
       AlarmsScheduler.ACTION_FIRED -> {
         val id = intent.getIntExtra(AlarmsScheduler.EXTRA_ID, -1)

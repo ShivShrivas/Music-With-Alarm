@@ -39,7 +39,7 @@ class PlayerWrapper(
 
           setOnCompletionListener {
               val alarms: Alarms by globalInject()
-              for (i in 0..40) {
+              for (i in 0..60) {
                   alarms.getAlarm(i)?.dismiss()
 
               }
